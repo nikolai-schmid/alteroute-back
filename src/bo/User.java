@@ -1,4 +1,4 @@
-package alteroute;
+package bo;
 
 public class User {
 	private int id;
@@ -22,7 +22,6 @@ public class User {
 	
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return this.username + "#" + this.id;
 	}
 }

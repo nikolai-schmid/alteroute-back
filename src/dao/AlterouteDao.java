@@ -1,31 +1,19 @@
-package alteroute;
+package dao;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.Database;
-import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.DocumentCollection;
 
 public class AlterouteDao {
-	
-	private static Gson gson = new Gson();
-	private DocumentClient documentClient = DocumentClientFactory.getDocumentClient();
-    
-    private static final String DATABASE_ID = "alteroute";
-
-    private static final String COLLECTION_ID = "user";
-
+	private static final String DATABASE_ID = "alteroute";
     private static Database databaseCache;
-
     private static DocumentCollection collectionCache;
-
-    private Database getUserDatabase() {
+    private static DocumentClient documentClient = dao.DocumentClientFactory.getDocumentClient();
+    	
+    static Database getAlterouteDatabase() {
         if (databaseCache == null) {
             List<Database> databaseList = documentClient
                     .queryDatabases(
@@ -49,14 +37,13 @@ public class AlterouteDao {
 
         return databaseCache;
     }
-
-
-    private DocumentCollection getUserCollection() {
+    
+    static DocumentCollection getCollection(String collectionId) {
         if (collectionCache == null) {
             List<DocumentCollection> collectionList = documentClient
                     .queryCollections(
-                            getUserDatabase().getSelfLink(),
-                            "SELECT * FROM root r WHERE r.id='" + COLLECTION_ID
+                            AlterouteDao.getAlterouteDatabase().getSelfLink(),
+                            "SELECT * FROM root r WHERE r.id='" + collectionId
                             + "'", null).getQueryIterable().toList();
 
             
@@ -65,10 +52,10 @@ public class AlterouteDao {
             } else {
                 try {
                     DocumentCollection collectionDefinition = new DocumentCollection();
-                    collectionDefinition.setId(COLLECTION_ID);
+                    collectionDefinition.setId(collectionId);
 
                     collectionCache = documentClient.createCollection(
-                            getUserDatabase().getSelfLink(),
+                    		AlterouteDao.getAlterouteDatabase().getSelfLink(),
                             collectionDefinition, null).getResource();
                 } catch (DocumentClientException e) {
                     e.printStackTrace();
@@ -77,21 +64,5 @@ public class AlterouteDao {
         }
 
         return collectionCache;
-    }
-    
-    public List<User> readUserItems() {
-        List<User> users = new ArrayList<User>();
-
-        List<Document> documentList = documentClient
-                .queryDocuments(getUserCollection().getSelfLink(),
-                        "SELECT * FROM root",
-                        null).getQueryIterable().toList();
-
-        for (Document user : documentList) {
-            users.add(gson.fromJson(user.toString(),
-                    User.class));
-        }
-        
-        return users;
     }
 }
